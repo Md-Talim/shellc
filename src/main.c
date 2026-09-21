@@ -5,12 +5,14 @@ int main(int argc, char *argv[]) {
     // Flush after every printf
     setbuf(stdout, NULL);
 
-    printf("$ ");
+    while (1) {
+        printf("$ ");
 
-    char *input;
-    scanf("%s", input);
+        char *input;
+        scanf("%s", input);
 
-    printf("%s: command not found", input);
+        printf("%s: command not found\n", input);
+    }
 
     return 0;
 }
