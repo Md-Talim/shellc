@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 char *find_executable(char *command) {
@@ -81,7 +82,51 @@ int main(int argc, char *argv[]) {
                 }
             }
         } else {
-            printf("%s: command not found\n", input);
+            char *argv[256];
+            int argc = 0;
+            int i = 0;
+
+            while (input[i] != '\0') {
+                while (input[i] == ' ') {
+                    i++;
+                }
+                if (input[i] == '\0') {
+                    break;
+                }
+
+                argv[argc++] = &input[i]; // beginning of an argument
+
+                while (input[i] != ' ' && input[i] != '\0') {
+                    i++;
+                }
+                if (input[i] == ' ') {
+                    input[i] = '\0';
+                    i++;
+                }
+            }
+            argv[argc] = NULL;
+
+            char *executable = find_executable(argv[0]);
+            if (executable == NULL) {
+                printf("%s: command not found\n", input);
+                continue;
+            }
+
+            pid_t pid = fork();
+            if (pid < 0) { // failed
+                perror("fork failed");
+                free(executable);
+                continue;
+            }
+            if (pid == 0) {
+                execv(executable, argv);
+                perror("execv failed");
+                free(executable);
+                _exit(1);
+            }
+
+            waitpid(pid, NULL, 0);
+            free(executable);
         }
     }
 
