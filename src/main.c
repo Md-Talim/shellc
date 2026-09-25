@@ -69,6 +69,7 @@ int main(int argc, char *argv[]) {
             char *command = input + 5;
             if ((strcmp(command, "echo") == 0) ||
                 (strcmp(command, "exit") == 0) ||
+                (strcmp(command, "pwd") == 0) ||
                 (strcmp(command, "type") == 0)) {
                 printf("%s is a shell builtin\n", command);
             } else {
@@ -81,6 +82,14 @@ int main(int argc, char *argv[]) {
                     printf("%s: not found\n", command);
                 }
             }
+        } else if (strncmp(input, "pwd", 3) == 0) {
+            char *cwd = getcwd(NULL, 0);
+            if (cwd == NULL) {
+                fprintf(stderr, "getcwd failed");
+                continue;
+            }
+            printf("%s\n", cwd);
+            free(cwd);
         } else {
             char *argv[256];
             int argc = 0;
