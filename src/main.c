@@ -7,6 +7,8 @@
 #define MAX_INPUT 4096
 #define MAX_ARGS 256
 
+static const char *BUILTINS[] = {"echo", "exit", "pwd", "type", NULL};
+
 // Splits input in-place on spaces, filling argv with pointers into input.
 // Returns the number of arguments (argv is NULL-terminated at argv[argc]).
 // returns 0 for an empty/whitespace only line
@@ -84,6 +86,14 @@ char *find_executable(char *command) {
     return NULL;
 }
 
+int is_builtin(const char *name) {
+    for (int i = 0; BUILTINS[i]; i++) {
+        if (strcmp(name, BUILTINS[i]) == 0)
+            return 1;
+    }
+    return 0;
+}
+
 int run_builtin(char **args, int argc) {
     if (strcmp(args[0], "exit") == 0) {
         exit(0);
@@ -116,10 +126,7 @@ int run_builtin(char **args, int argc) {
             return 1;
         }
         for (int i = 1; i < argc; i++) {
-            if ((strcmp(args[i], "echo") == 0) ||
-                (strcmp(args[i], "exit") == 0) ||
-                (strcmp(args[i], "pwd") == 0) ||
-                (strcmp(args[i], "type") == 0)) {
+            if (is_builtin(args[i])) {
                 printf("%s is a shell builtin\n", args[i]);
             } else {
                 char *executable = find_executable(args[i]);
