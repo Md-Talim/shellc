@@ -4,6 +4,39 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+// Splits input in-place on spaces, filling argv with pointers into input.
+// Returns the number of arguments (argv is NULL-terminated at argv[argc]).
+// returns 0 for an empty/whitespace only line
+int parse_input(char *input, char **argv, int max_args) {
+    int argc = 0;
+    int i = 0;
+
+    while (input[i] != '\0') {
+        while (input[i] == ' ') {
+            i++;
+        }
+        if (input[i] == '\0') {
+            break;
+        }
+        if (argc >= max_args - 1) {
+            break;
+        }
+
+        argv[argc++] = &input[i];
+
+        while (input[i] != ' ' && input[i] != '\0') {
+            i++;
+        }
+        if (input[i] == ' ') {
+            input[i] = '\0';
+            i++;
+        }
+    }
+    argv[argc] = NULL;
+
+    return argc;
+}
+
 char *find_executable(char *command) {
     char *path = getenv("PATH");
     if (!path) {
@@ -91,33 +124,15 @@ int main(int argc, char *argv[]) {
             printf("%s\n", cwd);
             free(cwd);
         } else {
-            char *argv[256];
-            int argc = 0;
-            int i = 0;
-
-            while (input[i] != '\0') {
-                while (input[i] == ' ') {
-                    i++;
-                }
-                if (input[i] == '\0') {
-                    break;
-                }
-
-                argv[argc++] = &input[i]; // beginning of an argument
-
-                while (input[i] != ' ' && input[i] != '\0') {
-                    i++;
-                }
-                if (input[i] == ' ') {
-                    input[i] = '\0';
-                    i++;
-                }
+            char *args[256];
+            int argc = parse_input(input, args, 256);
+            if (argc == 0) {
+                continue;
             }
-            argv[argc] = NULL;
 
-            char *executable = find_executable(argv[0]);
+            char *executable = find_executable(args[0]);
             if (executable == NULL) {
-                printf("%s: command not found\n", input);
+                printf("%s: command not found\n", args[0]);
                 continue;
             }
 
@@ -128,7 +143,7 @@ int main(int argc, char *argv[]) {
                 continue;
             }
             if (pid == 0) {
-                execv(executable, argv);
+                execv(executable, args);
                 perror("execv failed");
                 free(executable);
                 _exit(1);
