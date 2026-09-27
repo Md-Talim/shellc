@@ -7,7 +7,7 @@
 #define MAX_INPUT 4096
 #define MAX_ARGS 256
 
-static const char *BUILTINS[] = {"echo", "exit", "pwd", "type", NULL};
+static const char *BUILTINS[] = {"echo", "exit", "pwd", "cd", "type", NULL};
 
 // Splits input in-place on spaces, filling argv with pointers into input.
 // Returns the number of arguments (argv is NULL-terminated at argv[argc]).
@@ -116,6 +116,21 @@ int run_builtin(char **args, int argc) {
         } else {
             printf("%s\n", cwd);
             free(cwd);
+        }
+        return 1;
+    }
+
+    if (strcmp(args[0], "cd") == 0) {
+        if (argc > 2) {
+            fprintf(stderr, "cd: too many arguments\n");
+            return 1;
+        }
+
+        const char *dir = (argc > 1) ? args[1] : getenv("HOME");
+        if (dir == NULL) {
+            fprintf(stderr, "cd: HOME not set\n");
+        } else if (chdir(dir) != 0) {
+            fprintf(stderr, "cd: %s: No such file or directory\n", dir);
         }
         return 1;
     }
