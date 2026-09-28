@@ -129,7 +129,10 @@ int run_builtin(char **args, int argc) {
         const char *dir = (argc > 1) ? args[1] : getenv("HOME");
         if (dir == NULL) {
             fprintf(stderr, "cd: HOME not set\n");
-        } else if (chdir(dir) != 0) {
+        } else if (dir[0] == '~') {
+            dir = getenv("HOME");
+        }
+        if (chdir(dir) != 0) {
             fprintf(stderr, "cd: %s: No such file or directory\n", dir);
         }
         return 1;
