@@ -14,7 +14,8 @@ static const char *BUILTINS[] = {"echo", "exit", "pwd", "cd", "type", NULL};
 // returns 0 for an empty/whitespace only line
 int parse_input(char *input, char **argv, int max_args) {
     int argc = 0;
-    int i = 0;
+    int i = 0; // read cursor
+    int j = 0; // write cursor
 
     while (input[i] != '\0') {
         while (input[i] == ' ') {
@@ -27,15 +28,28 @@ int parse_input(char *input, char **argv, int max_args) {
             break;
         }
 
-        argv[argc++] = &input[i];
+        argv[argc++] = &input[j];
 
-        while (input[i] != ' ' && input[i] != '\0') {
-            i++;
+        while (input[i] != '\0') {
+            if (input[i] == '\'') {
+                i++; // consue opening quote
+                while (input[i] != '\'' && input[i] != '\0') {
+                    input[j++] = input[i++];
+                }
+                if (input[i] == '\'') {
+                    i++; // consume closing quote
+                }
+            } else if (input[i] == ' ') {
+                break;
+            } else {
+                input[j++] = input[i++];
+            }
         }
+
         if (input[i] == ' ') {
-            input[i] = '\0';
             i++;
         }
+        input[j++] = '\0';
     }
     argv[argc] = NULL;
 
