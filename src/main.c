@@ -47,6 +47,11 @@ int parse_input(char *input, char **argv, int max_args) {
                 if (input[i] == '\"') {
                     i++; // consume closing quote
                 }
+            } else if (input[i] == '\\') {
+                i++;
+                if (input[i] != '\0') {
+                    input[j++] = input[i++];
+                }
             } else if (input[i] == ' ') {
                 break;
             } else {
